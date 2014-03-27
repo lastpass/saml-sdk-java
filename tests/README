@@ -1,0 +1,7 @@
+These tests are based on RSpec from Ruby and are run with jruby;
+the jruby rspec gem is required to run them:
+
+    $ jruby -S gem install rspec -v 2.6.0
+
+The keys in the data directory are only for test purposes. Please
+do not reuse them for any real configuration.

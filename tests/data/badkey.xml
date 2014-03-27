@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+  xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+  entityID="https://lastpass.com/saml/idp">
+  <md:IDPSSODescriptor
+    protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <md:KeyDescriptor use="signing">
+      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+        <ds:X509Data>
+            <ds:X509Certificate>
+MIIDpTCCAo2gAwIBAgIJAJtuKdyb+VsRMA0GCSqGSIb3DQEBBQUAMGkxCzAJBgNV
+BAYTAlhZMRUwEwYDVQQIDAxTbmFrZSBEZXNlcnQxEzARBgNVBAcMClNuYWtlIFRv
+d24xFzAVBgNVBAoMDlNuYWtlIE9pbCwgTHRkMRUwEwYDVQQDDAxTbmFrZSBPaWwg
+Q0EwHhcNMTQwMzA2MTcwMzQxWhcNMjQwMzAzMTcwMzQxWjBpMQswCQYDVQQGEwJY
+WTEVMBMGA1UECAwMU25ha2UgRGVzZXJ0MRMwEQYDVQQHDApTbmFrZSBUb3duMRcw
+FQYDVQQKDA5TbmFrZSBPaWwsIEx0ZDEVMBMGA1UEAwwMU25ha2UgT2lsIENBMIIB
+IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1BMV7ZeuCuzlLQ0HTn5cF+HJ
+pwhC9h8ho1JZfO/TQFAaGXUpr89fCLuC5twI0UTU4XBCtysiVtkeVG7X3fPxQrK2
+Pz41FoCwcAoKlgf138m5MspO0gVHl7BYqLbO3AuQrZUKgIh5yZ90BsQeMj6rCn99
+/Drt8t1pPKZ73ZnApMlr1J2BAWBuNHNYuB1Pvweylqq+Lal1qxt583HTNN2INI+m
+Y/e8ydkDkfc9so6967iLCxjqQjXbgT7vWM5QAk4rslyQPmafuB7Y7Pod8Ph/GJ6A
+Gj2n+GNzeHzKPm9uyCtuJjGLnq4cII+iHhVZxK4XqmhM3/wkcHt41JFizfrMRQID
+AQABo1AwTjAdBgNVHQ4EFgQUUeqv6RiTU/W47NGtmYOuMkneUhQwHwYDVR0jBBgw
+FoAUUeqv6RiTU/W47NGtmYOuMkneUhQwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0B
+AQUFAAOCAQEAi9f7vG1xfcA60JJMAzKDHCtRvQsVnADjsiqyVw4p5yg0jrUF7Nll
+sNNxzWj3JpJNYN9zKitbFFcm6cCCNQJPnm6SjaCdLIlFEEkMLzC142675zAHDPrX
++YBYnR7qhm/FAF2f/s6pPcgHNqN6LTlmWe68aplrHMzN2VSZHZzrw2AiFFkdqy4r
+V12UbpGtZtgswtV8DmzroBhWkakIAKxe9eMfQarMnOz8B7218bThvtj+sC1MFDbF
+5Ztz2lnXTmBWj++++JPz/Okk4QdKdf/UWt+9HKPAFzwA/Roix62bwuZwC/ND9+Gv
+/a/4Md1HCZfMEsKmgaOTTw+Qmd6T6OCSSw==
+            </ds:X509Certificate>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </md:KeyDescriptor>
+    <md:KeyDescriptor use="encryption">
+      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+        <ds:X509Data>
+            <ds:X509Certificate>
+MIIDpTCCAo2gAwIBAgIJAJtuKdyb+VsRMA0GCSqGSIb3DQEBBQUAMGkxCzAJBgNV
+BAYTAlhZMRUwEwYDVQQIDAxTbmFrZSBEZXNlcnQxEzARBgNVBAcMClNuYWtlIFRv
+d24xFzAVBgNVBAoMDlNuYWtlIE9pbCwgTHRkMRUwEwYDVQQDDAxTbmFrZSBPaWwg
+Q0EwHhcNMTQwMzA2MTcwMzQxWhcNMjQwMzAzMTcwMzQxWjBpMQswCQYDVQQGEwJY
+WTEVMBMGA1UECAwMU25ha2UgRGVzZXJ0MRMwEQYDVQQHDApTbmFrZSBUb3duMRcw
+FQYDVQQKDA5TbmFrZSBPaWwsIEx0ZDEVMBMGA1UEAwwMU25ha2UgT2lsIENBMIIB
+IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1BMV7ZeuCuzlLQ0HTn5cF+HJ
+pwhC9h8ho1JZfO/TQFAaGXUpr89fCLuC5twI0UTU4XBCtysiVtkeVG7X3fPxQrK2
+Pz41FoCwcAoKlgf138m5MspO0gVHl7BYqLbO3AuQrZUKgIh5yZ90BsQeMj6rCn99
+/Drt8t1pPKZ73ZnApMlr1J2BAWBuNHNYuB1Pvweylqq+Lal1qxt583HTNN2INI+m
+Y/e8ydkDkfc9so6967iLCxjqQjXbgT7vWM5QAk4rslyQPmafuB7Y7Pod8Ph/GJ6A
+Gj2n+GNzeHzKPm9uyCtuJjGLnq4cII+iHhVZxK4XqmhM3/wkcHt41JFizfrMRQID
+AQABo1AwTjAdBgNVHQ4EFgQUUeqv6RiTU/W47NGtmYOuMkneUhQwHwYDVR0jBBgw
+FoAUUeqv6RiTU/W47NGtmYOuMkneUhQwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0B
+AQUFAAOCAQEAi9f7vG1xfcA60JJMAzKDHCtRvQsVnADjsiqyVw4p5yg0jrUF7Nll
+sNNxzWj3JpJNYN9zKitbFFcm6cCCNQJPnm6SjaCdLIlFEEkMLzC142675zAHDPrX
++YBYnR7qhm/FAF2f/s6pPcgHNqN6LTlmWe68aplrHMzN2VSZHZzrw2AiFFkdqy4r
+V12UbpGtZtgswtV8DmzroBhWkakIAKxe9eMfQarMnOz8B7218bThvtj+sC1MFDbF
+5Ztz2lnXTmBWj++++JPz/Okk4QdKdf/UWt+9HKPAFzwA/Roix62bwuZwC/ND9+Gv
+/a/4Md1HCZfMEsKmgaOTTw+Qmd6T6OCSSw==
+            </ds:X509Certificate>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </md:KeyDescriptor>
+    <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress</md:NameIDFormat>
+    <md:SingleSignOnService
+      Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      Location="https://lastpass.com/saml/saml.php"/>
+    <md:SingleLogoutService
+      Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      Location="https://lastpass.com/saml/saml.php?logout=1"/>
+  </md:IDPSSODescriptor>
+  <md:ContactPerson contactType="technical">
+    <md:SurName>Support</md:SurName>
+    <md:EmailAddress>support@lastpass.com</md:EmailAddress>
+  </md:ContactPerson>
+</md:EntityDescriptor>

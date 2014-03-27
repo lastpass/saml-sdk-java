@@ -1,0 +1,11 @@
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+    xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+    entityID="https://sp.example.org/test-sp">
+    <md:SPSSODescriptor
+        protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress</md:NameIDFormat>
+        <md:AssertionConsumerService index="1" isDefault="true"
+            Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+            Location="https://sp.example.org/saml/sp/POST"/>
+    </md:SPSSODescriptor>
+</md:EntityDescriptor>
