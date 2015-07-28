@@ -216,11 +216,14 @@ public class SAMLClient
                     "Assertion should contain an AuthnStatement");
             }
             for (AuthnStatement as: assertion.getAuthnStatements()) {
-                DateTime exp = as.getSessionNotOnOrAfter().plusSeconds(slack);
-                if (exp != null &&
-                    (now.isEqual(exp) || now.isAfter(exp)))
-                    throw new ValidationException(
-                        "AuthnStatement has expired");
+                DateTime sessionTime = as.getSessionNotOnOrAfter();
+                if (sessionTime != null) {
+                    DateTime exp = sessionTime.plusSeconds(slack);
+                    if (exp != null &&
+                            (now.isEqual(exp) || now.isAfter(exp)))
+                        throw new ValidationException(
+                                "AuthnStatement has expired");
+                }
             }
 
             if (assertion.getConditions() == null) {
