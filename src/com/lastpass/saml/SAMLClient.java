@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  *
- * Copyright (c) 2014 LastPass, Inc.
+ * Copyright (c) 2014-2015 LastPass, Inc.
  */
 package com.lastpass.saml;
 
@@ -166,9 +166,10 @@ public class SAMLClient
     private void validate(Response response)
         throws ValidationException
     {
-        // signature must match our SP's signature.
+        // response signature must match IdP's key, if present
         Signature sig = response.getSignature();
-        sigValidator.validate(sig);
+        if (sig != null)
+            sigValidator.validate(sig);
 
         // response must be successful
         if (response.getStatus() == null ||
