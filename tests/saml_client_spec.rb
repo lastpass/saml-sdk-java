@@ -1,8 +1,8 @@
 require 'java'
 require 'util'
 
-include_class com.lastpass.saml.SAMLClient
-include_class com.lastpass.saml.SAMLException
+java_import com.lastpass.saml.SAMLClient
+java_import com.lastpass.saml.SAMLException
 
 describe "SAMLClient" do
     before(:all) do

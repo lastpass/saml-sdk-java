@@ -1,7 +1,7 @@
 require 'java'
 require 'util'
 
-include_class com.lastpass.saml.SPConfig
+java_import com.lastpass.saml.SPConfig
 
 describe "SPConfig" do
     before(:all) do

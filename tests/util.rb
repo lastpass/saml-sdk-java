@@ -1,39 +1,39 @@
 require 'java'
 require 'base64'
 
-include_class com.lastpass.saml.SAMLInit
-include_class com.lastpass.saml.SAMLClient
-include_class com.lastpass.saml.SPConfig
-include_class com.lastpass.saml.IdPConfig
+java_import com.lastpass.saml.SAMLInit
+java_import com.lastpass.saml.SAMLClient
+java_import com.lastpass.saml.SPConfig
+java_import com.lastpass.saml.IdPConfig
 
-include_class org.opensaml.Configuration
-include_class org.opensaml.saml2.core.Response
-include_class org.opensaml.saml2.core.Subject
-include_class org.opensaml.saml2.core.NameID
-include_class org.opensaml.saml2.core.Issuer
-include_class org.opensaml.saml2.core.Assertion
-include_class org.opensaml.saml2.core.Conditions
-include_class org.opensaml.saml2.core.AudienceRestriction
-include_class org.opensaml.saml2.core.Audience
-include_class org.opensaml.saml2.core.AuthnStatement
-include_class org.opensaml.saml2.core.Status
-include_class org.opensaml.saml2.core.StatusCode
-include_class org.opensaml.saml2.core.SubjectConfirmation
-include_class org.opensaml.saml2.core.SubjectConfirmationData
-include_class org.opensaml.saml2.core.StatusCode
-include_class org.opensaml.xml.signature.Signature
-include_class org.opensaml.xml.signature.SignatureConstants
-include_class org.opensaml.xml.signature.Signer
-include_class org.opensaml.xml.security.credential.BasicCredential
+java_import org.opensaml.Configuration
+java_import org.opensaml.saml2.core.Response
+java_import org.opensaml.saml2.core.Subject
+java_import org.opensaml.saml2.core.NameID
+java_import org.opensaml.saml2.core.Issuer
+java_import org.opensaml.saml2.core.Assertion
+java_import org.opensaml.saml2.core.Conditions
+java_import org.opensaml.saml2.core.AudienceRestriction
+java_import org.opensaml.saml2.core.Audience
+java_import org.opensaml.saml2.core.AuthnStatement
+java_import org.opensaml.saml2.core.Status
+java_import org.opensaml.saml2.core.StatusCode
+java_import org.opensaml.saml2.core.SubjectConfirmation
+java_import org.opensaml.saml2.core.SubjectConfirmationData
+java_import org.opensaml.saml2.core.StatusCode
+java_import org.opensaml.xml.signature.Signature
+java_import org.opensaml.xml.signature.SignatureConstants
+java_import org.opensaml.xml.signature.Signer
+java_import org.opensaml.xml.security.credential.BasicCredential
 
-include_class org.bouncycastle.jce.provider.BouncyCastleProvider
-include_class org.bouncycastle.openssl.PEMReader
+java_import org.bouncycastle.jce.provider.BouncyCastleProvider
+java_import org.bouncycastle.openssl.PEMReader
 
-include_class org.joda.time.DateTime
+java_import org.joda.time.DateTime
 
-include_class java.io.FileReader
-include_class java.io.BufferedReader
-include_class java.security.Security
+java_import java.io.FileReader
+java_import java.io.BufferedReader
+java_import java.security.Security
 
 def init()
     SAMLInit.initialize()
