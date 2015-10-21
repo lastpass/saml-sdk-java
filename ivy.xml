@@ -2,6 +2,5 @@
     <info organisation="com.lastpass" module="saml-sdk-java"/>
     <dependencies>
         <dependency org="org.opensaml" name="opensaml" rev="2.6.1"/>
-        <dependency org="commons-io" name="commons-io" rev="2.4"/>
     </dependencies>
 </ivy-module>
