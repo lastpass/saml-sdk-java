@@ -5,7 +5,7 @@
     <property name="classes.dir" value="classes"/>
     <property name="source.dir" value="src"/>
     <property name="output.dir" value="out"/>
-    <property name="version" value="0.2.0"/>
+    <property name="version" value="0.2.1"/>
     <property name="output.jar" value="lastpass-saml-sdk-${version}.jar"/>
 
     <target name="resolve" description="--> retrieve dependencies with ivy">
