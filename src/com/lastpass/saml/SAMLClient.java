@@ -17,52 +17,52 @@
  */
 package com.lastpass.saml;
 
+import org.joda.time.DateTime;
 import org.opensaml.Configuration;
-import org.opensaml.saml2.core.Response;
-import org.opensaml.saml2.core.Subject;
-import org.opensaml.saml2.core.Conditions;
-import org.opensaml.saml2.core.AuthnStatement;
-import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.common.SAMLObjectBuilder;
 import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.Issuer;
+import org.opensaml.saml2.core.Attribute;
+import org.opensaml.saml2.core.AttributeStatement;
 import org.opensaml.saml2.core.Audience;
 import org.opensaml.saml2.core.AudienceRestriction;
+import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.saml2.core.AuthnStatement;
+import org.opensaml.saml2.core.Conditions;
+import org.opensaml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml2.core.Issuer;
+import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.StatusCode;
+import org.opensaml.saml2.core.Subject;
 import org.opensaml.saml2.core.SubjectConfirmation;
 import org.opensaml.saml2.core.SubjectConfirmationData;
-
-import org.opensaml.saml2.core.AttributeStatement;
-import org.opensaml.saml2.core.Attribute;
-
-import org.opensaml.common.SAMLObjectBuilder;
-
-import org.opensaml.xml.parse.BasicParserPool;
-import org.opensaml.xml.io.MarshallingException;
-import org.opensaml.xml.security.credential.BasicCredential;
-import org.opensaml.xml.signature.SignatureValidator;
-import org.opensaml.xml.signature.Signature;
-import org.opensaml.xml.validation.ValidationException;
-import org.opensaml.xml.XMLObjectBuilderFactory;
+import org.opensaml.saml2.encryption.Decrypter;
 import org.opensaml.xml.XMLObject;
-
-import org.joda.time.DateTime;
-
+import org.opensaml.xml.XMLObjectBuilderFactory;
+import org.opensaml.xml.encryption.DecryptionException;
+import org.opensaml.xml.encryption.InlineEncryptedKeyResolver;
+import org.opensaml.xml.io.MarshallingException;
+import org.opensaml.xml.parse.BasicParserPool;
+import org.opensaml.xml.security.credential.BasicCredential;
+import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
+import org.opensaml.xml.signature.Signature;
+import org.opensaml.xml.signature.SignatureValidator;
+import org.opensaml.xml.validation.ValidationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSSerializer;
 import org.xml.sax.InputSource;
-import java.io.StringReader;
-import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.io.IOException;
-
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.zip.Deflater;
 
 import javax.xml.bind.DatatypeConverter;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.security.PrivateKey;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.zip.Deflater;
 
 
 /**
@@ -92,6 +92,7 @@ public class SAMLClient
     private IdPConfig idpConfig;
     private SignatureValidator sigValidator;
     private BasicParserPool parsers;
+    private PrivateKey privateKey;
 
     /* do date comparisons +/- this many seconds */
     private static final int slack = 300;
@@ -100,8 +101,7 @@ public class SAMLClient
      * Create a new SAMLClient, using the IdPConfig for
      * endpoints and validation.
      */
-    public SAMLClient(SPConfig spConfig, IdPConfig idpConfig)
-        throws SAMLException
+    public SAMLClient(SPConfig spConfig, IdPConfig idpConfig) throws SAMLException
     {
         this.spConfig = spConfig;
         this.idpConfig = idpConfig;
@@ -115,6 +115,18 @@ public class SAMLClient
         // create xml parsers
         parsers = new BasicParserPool();
         parsers.setNamespaceAware(true);
+    }
+
+    /**
+     * Create a new SAMLClient, using the IdPConfig for
+     * endpoints and validation. SP's private key is passed
+     * in so encrypted assertions can be decrypted.
+     */
+    public SAMLClient(SPConfig spConfig, IdPConfig idpConfig, PrivateKey privateKey) throws SAMLException
+    {
+        this(spConfig, idpConfig);
+        this.privateKey = privateKey;
+
     }
 
     /**
@@ -140,11 +152,17 @@ public class SAMLClient
     private Response parseResponse(String authnResponse)
         throws SAMLException
     {
+        BasicParserPool parsers = new BasicParserPool();
+        parsers.setNamespaceAware(true);
         try {
             Document doc = parsers.getBuilder()
                 .parse(new InputSource(new StringReader(authnResponse)));
 
             Element root = doc.getDocumentElement();
+
+            // this fixes the "Cannot resolve element with ID" exception.
+            root.setIdAttribute("ID", true);
+
             return (Response) Configuration.getUnmarshallerFactory()
                 .getUnmarshaller(root)
                 .unmarshall(root);
@@ -161,6 +179,17 @@ public class SAMLClient
         catch (java.io.IOException e) {
             throw new SAMLException(e);
         }
+    }
+
+    private Assertion decryptEncryptedAssertion(EncryptedAssertion encryptedAssertion, BasicCredential spPrivateKeyCredential) throws DecryptionException
+    {
+        StaticKeyInfoCredentialResolver staticKeyResolver = new StaticKeyInfoCredentialResolver(spPrivateKeyCredential);
+        InlineEncryptedKeyResolver inlineEncryptedKeyResolver = new InlineEncryptedKeyResolver();
+
+        Decrypter decrypter = new Decrypter(null, staticKeyResolver, inlineEncryptedKeyResolver);
+        decrypter.setRootInNewDocument(true);
+
+        return decrypter.decrypt(encryptedAssertion);
     }
 
     private void validate(Response response)
@@ -200,8 +229,14 @@ public class SAMLClient
                     "Response IssueInstant is in the future");
         }
 
-        for (Assertion assertion: response.getAssertions()) {
+        List<Assertion> assertions;
+        try {
+            assertions = parseAllAssertions(response);
+        } catch(SAMLException ex) {
+            throw new ValidationException("no assertions found.");
+        }
 
+        for (Assertion assertion: assertions) {
             // Assertion must be signed correctly
             if (!assertion.isSigned())
                 throw new ValidationException(
@@ -408,6 +443,33 @@ public class SAMLClient
         }
     }
 
+    protected List<Assertion> parseAllAssertions(Response response) throws SAMLException
+    {
+        List<Assertion> actualAssertions = new ArrayList<>();
+
+        if (response.getAssertions().size() > 0) {
+            actualAssertions = response.getAssertions();
+        }
+
+        if (response.getEncryptedAssertions().size() > 0) {
+            BasicCredential cred = new BasicCredential();
+            if (privateKey == null) {
+                throw new SAMLException("Encrypted assertions found but no privateKey passed in.");
+            }
+            cred.setPrivateKey(privateKey);
+
+            try {
+                for (EncryptedAssertion eAssertion : response.getEncryptedAssertions()) {
+                    actualAssertions.add(decryptEncryptedAssertion(eAssertion, cred));
+                }
+            } catch (DecryptionException ex) {
+                throw new SAMLException("failed to decrypt assertions", ex);
+            }
+        }
+
+        return actualAssertions;
+    }
+
     /**
      * Check an authnResponse and return the subject if validation
      * succeeds.  The NameID from the subject in the first valid
@@ -435,12 +497,13 @@ public class SAMLClient
             throw new SAMLException(e);
         }
 
+        List<Assertion> assertions = parseAllAssertions(response);
         // we only look at first assertion
-        if (response.getAssertions().size() != 1) {
+        if (assertions.size() != 1) {
             throw new SAMLException(
-                "Response should have a single assertion.");
+                "Response should have a single assertion. There were " + assertions.size() + ".");
         }
-        Assertion assertion = response.getAssertions().get(0);
+        Assertion assertion = assertions.get(0);
 
         Subject subject = assertion.getSubject();
         if (subject == null) {
