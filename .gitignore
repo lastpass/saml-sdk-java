@@ -1,3 +1,6 @@
 *.sw?
 classes
 lib
+.idea
+out
+*.iml
