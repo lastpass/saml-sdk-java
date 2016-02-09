@@ -20,7 +20,7 @@ package com.lastpass.saml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-
+import net.shibboleth.utilities.java.support.component.ComponentInitializationException;
 import net.shibboleth.utilities.java.support.xml.BasicParserPool;
 import net.shibboleth.utilities.java.support.xml.XMLParserException;
 import org.opensaml.core.config.Configuration;
@@ -105,6 +105,11 @@ public class SPConfig
     {
         BasicParserPool parsers = new BasicParserPool();
         parsers.setNamespaceAware(true);
+        try {
+            parsers.initialize();
+        } catch (ComponentInitializationException e) {
+            throw new SAMLException("Failed to initialize BasicParserPool", e);
+        }
 
         EntityDescriptor edesc;
 

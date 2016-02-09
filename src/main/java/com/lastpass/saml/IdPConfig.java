@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 import javax.xml.bind.DatatypeConverter;
+import net.shibboleth.utilities.java.support.component.ComponentInitializationException;
 import net.shibboleth.utilities.java.support.xml.BasicParserPool;
 import net.shibboleth.utilities.java.support.xml.XMLParserException;
 import org.opensaml.core.xml.io.UnmarshallingException;
@@ -109,6 +110,11 @@ public class IdPConfig
     {
         BasicParserPool parsers = new BasicParserPool();
         parsers.setNamespaceAware(true);
+        try {
+            parsers.initialize();
+        } catch (ComponentInitializationException e) {
+            throw new SAMLException("Failed to initialize BasicParserPool", e);
+        }
 
         EntityDescriptor edesc;
 
