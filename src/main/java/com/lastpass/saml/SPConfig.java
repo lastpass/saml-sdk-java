@@ -123,7 +123,7 @@ public class SPConfig
 
         // fetch sp information
         SPSSODescriptor spDesc = edesc.getSPSSODescriptor(
-            "urn:oasis:names:tc:SAML:2.0:protocol");
+            SAMLConstants.SAML20P_NS);
 
         if (spDesc == null)
             throw new SAMLException("No SP SSO descriptor found");

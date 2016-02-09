@@ -32,6 +32,7 @@ import net.shibboleth.utilities.java.support.xml.XMLParserException;
 import org.opensaml.core.xml.io.UnmarshallingException;
 import org.opensaml.core.xml.util.XMLObjectSupport;
 import org.opensaml.saml.common.xml.SAMLConstants;
+import org.opensaml.saml.config.SAMLConfiguration;
 import org.opensaml.saml.saml2.metadata.EntityDescriptor;
 import org.opensaml.saml.saml2.metadata.IDPSSODescriptor;
 import org.opensaml.saml.saml2.metadata.KeyDescriptor;
@@ -123,7 +124,7 @@ public class IdPConfig
 
         // fetch idp information
         IDPSSODescriptor idpDesc = edesc.getIDPSSODescriptor(
-            "urn:oasis:names:tc:SAML:2.0:protocol");
+                SAMLConstants.SAML20P_NS);
 
         if (idpDesc == null)
             throw new SAMLException("No IDP SSO descriptor found");
