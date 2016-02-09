@@ -64,6 +64,9 @@ public class IdPConfig
      * Construct a new IdpConfig from a metadata XML file.
      *
      * @param metadataFile File where the metadata lives
+     *
+     * @throws SAMLException if an error condition occurs while trying to parse and process
+     *              the metadata
      */
     public IdPConfig(File metadataFile)
         throws SAMLException
@@ -91,7 +94,10 @@ public class IdPConfig
     /**
      * Construct a new IdpConfig from a metadata XML input stream.
      *
-     * @param inputStream An input stream containing a metadata XML document.
+     * @param inputStream An input stream containing a metadata XML document
+     *
+     * @throws SAMLException if an error condition occurs while trying to parse and process
+     *              the metadata
      */
     public IdPConfig(InputStream inputStream)
         throws SAMLException
