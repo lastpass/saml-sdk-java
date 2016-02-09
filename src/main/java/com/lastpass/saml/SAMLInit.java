@@ -17,8 +17,8 @@
  */
 package com.lastpass.saml;
 
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.xml.ConfigurationException;
+import org.opensaml.core.config.InitializationException;
+import org.opensaml.core.config.InitializationService;
 
 /**
  * Library initialization routines.
@@ -35,8 +35,8 @@ public class SAMLInit
         throws SAMLException
     {
         try {
-            DefaultBootstrap.bootstrap();
-        } catch (ConfigurationException e) {
+            InitializationService.initialize();
+        } catch (InitializationException e) {
             throw new SAMLException(e);
         }
     }

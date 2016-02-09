@@ -17,41 +17,11 @@
  */
 package com.lastpass.saml;
 
-import org.opensaml.Configuration;
-import org.opensaml.saml2.core.Response;
-import org.opensaml.saml2.core.Subject;
-import org.opensaml.saml2.core.Conditions;
-import org.opensaml.saml2.core.AuthnStatement;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.Audience;
-import org.opensaml.saml2.core.AudienceRestriction;
-import org.opensaml.saml2.core.StatusCode;
-import org.opensaml.saml2.core.SubjectConfirmation;
-import org.opensaml.saml2.core.SubjectConfirmationData;
 
-import org.opensaml.saml2.core.AttributeStatement;
-import org.opensaml.saml2.core.Attribute;
-
-import org.opensaml.common.SAMLObjectBuilder;
-
-import org.opensaml.xml.parse.BasicParserPool;
-import org.opensaml.xml.io.MarshallingException;
-import org.opensaml.xml.security.credential.BasicCredential;
-import org.opensaml.xml.signature.SignatureValidator;
-import org.opensaml.xml.signature.Signature;
-import org.opensaml.xml.validation.ValidationException;
-import org.opensaml.xml.XMLObjectBuilderFactory;
-import org.opensaml.xml.XMLObject;
 
 import org.joda.time.DateTime;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.ls.DOMImplementationLS;
-import org.w3c.dom.ls.LSSerializer;
-import org.xml.sax.InputSource;
 import java.io.StringReader;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
@@ -63,6 +33,33 @@ import java.util.List;
 import java.util.zip.Deflater;
 
 import javax.xml.bind.DatatypeConverter;
+import javax.xml.bind.ValidationException;
+import net.shibboleth.utilities.java.support.xml.BasicParserPool;
+import net.shibboleth.utilities.java.support.xml.SerializeSupport;
+import net.shibboleth.utilities.java.support.xml.XMLParserException;
+import org.opensaml.core.xml.XMLObject;
+import org.opensaml.core.xml.io.MarshallingException;
+import org.opensaml.core.xml.io.UnmarshallingException;
+import org.opensaml.core.xml.util.XMLObjectSupport;
+import org.opensaml.saml.common.SAMLObjectBuilder;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.Attribute;
+import org.opensaml.saml.saml2.core.AttributeStatement;
+import org.opensaml.saml.saml2.core.Audience;
+import org.opensaml.saml.saml2.core.AudienceRestriction;
+import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.saml.saml2.core.AuthnStatement;
+import org.opensaml.saml.saml2.core.Conditions;
+import org.opensaml.saml.saml2.core.Issuer;
+import org.opensaml.saml.saml2.core.Response;
+import org.opensaml.saml.saml2.core.StatusCode;
+import org.opensaml.saml.saml2.core.Subject;
+import org.opensaml.saml.saml2.core.SubjectConfirmation;
+import org.opensaml.saml.saml2.core.SubjectConfirmationData;
+import org.opensaml.security.credential.BasicCredential;
+import org.opensaml.xmlsec.signature.Signature;
+import org.opensaml.xmlsec.signature.support.SignatureException;
+import org.opensaml.xmlsec.signature.support.SignatureValidator;
 
 
 /**
@@ -90,11 +87,12 @@ public class SAMLClient
 {
     private SPConfig spConfig;
     private IdPConfig idpConfig;
-    private SignatureValidator sigValidator;
     private BasicParserPool parsers;
+    private final BasicCredential cred;
 
     /* do date comparisons +/- this many seconds */
     private static final int slack = 300;
+
 
     /**
      * Create a new SAMLClient, using the IdPConfig for
@@ -106,11 +104,8 @@ public class SAMLClient
         this.spConfig = spConfig;
         this.idpConfig = idpConfig;
 
-        BasicCredential cred = new BasicCredential();
-        cred.setEntityId(idpConfig.getEntityId());
-        cred.setPublicKey(idpConfig.getCert().getPublicKey());
-
-        sigValidator = new SignatureValidator(cred);
+        cred = new BasicCredential(idpConfig.getCert().getPublicKey());
+        cred.setEntityId(idpConfig.getEntityId());        
 
         // create xml parsers
         parsers = new BasicParserPool();
@@ -141,26 +136,18 @@ public class SAMLClient
         throws SAMLException
     {
         try {
-            Document doc = parsers.getBuilder()
-                .parse(new InputSource(new StringReader(authnResponse)));
+            XMLObject obj
+                    = XMLObjectSupport.
+                    unmarshallFromReader(parsers, new StringReader(authnResponse));
 
-            Element root = doc.getDocumentElement();
-            return (Response) Configuration.getUnmarshallerFactory()
-                .getUnmarshaller(root)
-                .unmarshall(root);
+            return (Response) obj;
         }
-        catch (org.opensaml.xml.parse.XMLParserException e) {
+        catch (XMLParserException e) {
             throw new SAMLException(e);
         }
-        catch (org.opensaml.xml.io.UnmarshallingException e) {
+        catch (UnmarshallingException e) {
             throw new SAMLException(e);
-        }
-        catch (org.xml.sax.SAXException e) {
-            throw new SAMLException(e);
-        }
-        catch (java.io.IOException e) {
-            throw new SAMLException(e);
-        }
+        }        
     }
 
     private void validate(Response response)
@@ -168,13 +155,19 @@ public class SAMLClient
     {
         // response signature must match IdP's key, if present
         Signature sig = response.getSignature();
-        if (sig != null)
-            sigValidator.validate(sig);
+        if (sig != null) 
+        {
+            try {
+                SignatureValidator.validate(sig, cred);
+            } catch (SignatureException ex) {
+                throw new ValidationException("Signature validation failed", ex);
+            }
+        }
 
         // response must be successful
         if (response.getStatus() == null ||
             response.getStatus().getStatusCode() == null ||
-            !(StatusCode.SUCCESS_URI
+            !(StatusCode.SUCCESS
                 .equals(response.getStatus().getStatusCode().getValue()))) {
             throw new ValidationException(
                 "Response has an unsuccessful status code");
@@ -208,7 +201,11 @@ public class SAMLClient
                     "Assertion must be signed");
 
             sig = assertion.getSignature();
-            sigValidator.validate(sig);
+            try {
+                SignatureValidator.validate(sig, cred);
+            } catch (SignatureException e) {
+                throw new ValidationException("Assertion signature validation failed", e);
+            }
 
             // Assertion must contain an authnstatement
             // with an unexpired session
@@ -323,15 +320,12 @@ public class SAMLClient
     private String createAuthnRequest(String requestId)
         throws SAMLException
     {
-        XMLObjectBuilderFactory builderFactory = Configuration.getBuilderFactory();
-
         SAMLObjectBuilder<AuthnRequest> builder =
-            (SAMLObjectBuilder<AuthnRequest>) builderFactory
-            .getBuilder(AuthnRequest.DEFAULT_ELEMENT_NAME);
+            (SAMLObjectBuilder<AuthnRequest>) 
+                XMLObjectSupport.getBuilder(AuthnRequest.DEFAULT_ELEMENT_NAME);
 
         SAMLObjectBuilder<Issuer> issuerBuilder =
-            (SAMLObjectBuilder<Issuer>) builderFactory
-            .getBuilder(Issuer.DEFAULT_ELEMENT_NAME);
+            (SAMLObjectBuilder<Issuer>) XMLObjectSupport.getBuilder(Issuer.DEFAULT_ELEMENT_NAME);
 
         AuthnRequest request = builder.buildObject();
         request.setAssertionConsumerServiceURL(spConfig.getAcs().toString());
@@ -344,18 +338,9 @@ public class SAMLClient
         request.setIssuer(issuer);
 
         try {
-            // samlobject to xml dom object
-            Element elem = Configuration.getMarshallerFactory()
-                .getMarshaller(request)
-                .marshall(request);
+            Element element = XMLObjectSupport.marshall(request);
 
-            // and to a string...
-            Document document = elem.getOwnerDocument();
-            DOMImplementationLS domImplLS = (DOMImplementationLS) document
-                .getImplementation();
-            LSSerializer serializer = domImplLS.createLSSerializer();
-            serializer.getDomConfig().setParameter("xml-declaration", false);
-            return serializer.writeToString(elem);
+            return SerializeSupport.nodeToString(element);
         }
         catch (MarshallingException e) {
             throw new SAMLException(e);
