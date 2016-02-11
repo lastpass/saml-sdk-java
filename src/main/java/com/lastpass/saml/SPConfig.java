@@ -114,9 +114,6 @@ public class SPConfig
         EntityDescriptor edesc;
 
         try {
-            Document doc = parsers.parse(inputStream);
-            Element root = doc.getDocumentElement();
-
             edesc = (EntityDescriptor) XMLObjectSupport.unmarshallFromInputStream(parsers, inputStream);
         }
         catch (XMLParserException e) {
