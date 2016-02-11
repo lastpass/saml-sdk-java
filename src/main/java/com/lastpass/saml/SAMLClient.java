@@ -60,6 +60,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.Deflater;
 
 import javax.xml.bind.DatatypeConverter;
@@ -94,7 +95,7 @@ public class SAMLClient
     private BasicParserPool parsers;
 
     /* do date comparisons +/- this many seconds */
-    private static final int slack = 300;
+    private static final int slack = (int) TimeUnit.MINUTES.toSeconds(5);
 
     /**
      * Create a new SAMLClient, using the IdPConfig for
@@ -191,11 +192,11 @@ public class SAMLClient
         DateTime issueInstant = response.getIssueInstant();
 
         if (issueInstant != null) {
-            if (issueInstant.isBefore(now.minusDays(1).minusSeconds(slack)))
+            if (issueInstant.isBefore(now.minusSeconds(slack)))
                 throw new ValidationException(
                     "Response IssueInstant is in the past");
 
-            if (issueInstant.isAfter(now.plusDays(1).plusSeconds(slack)))
+            if (issueInstant.isAfter(now.plusSeconds(slack)))
                 throw new ValidationException(
                     "Response IssueInstant is in the future");
         }
@@ -235,11 +236,11 @@ public class SAMLClient
             // Assertion IssueInstant must be within a day
             DateTime instant = assertion.getIssueInstant();
             if (instant != null) {
-                if (instant.isBefore(now.minusDays(1).minusSeconds(slack)))
+                if (instant.isBefore(now.minusSeconds(slack)))
                     throw new ValidationException(
                         "Response IssueInstant is in the past");
 
-                if (instant.isAfter(now.plusDays(1).plusSeconds(slack)))
+                if (instant.isAfter(now.plusSeconds(slack)))
                     throw new ValidationException(
                         "Response IssueInstant is in the future");
             }
