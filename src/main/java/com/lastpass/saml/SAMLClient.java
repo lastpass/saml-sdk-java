@@ -34,6 +34,7 @@ import java.util.zip.Deflater;
 
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.ValidationException;
+import net.shibboleth.utilities.java.support.component.ComponentInitializationException;
 import net.shibboleth.utilities.java.support.xml.BasicParserPool;
 import net.shibboleth.utilities.java.support.xml.SerializeSupport;
 import net.shibboleth.utilities.java.support.xml.XMLParserException;
@@ -110,6 +111,11 @@ public class SAMLClient
         // create xml parsers
         parsers = new BasicParserPool();
         parsers.setNamespaceAware(true);
+        try {
+            parsers.initialize();
+        } catch (ComponentInitializationException e) {
+            throw new SAMLException("Failed to initialize BasicParserPool", e);
+        }
     }
 
     /**
