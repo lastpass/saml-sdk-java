@@ -22,13 +22,22 @@ import java.security.SecureRandom;
 public class SAMLUtils
 {
     private static final char[] hexes = "0123456789abcdef".toCharArray();
-    private static String hexEncode(byte[] b)
+
+    /**
+     * Generate a hex string of the byte content with an 'a' character in the front of
+     * the string.
+     *
+     * @param b
+     * @return
+     */
+    private static String generateRequestIdString(byte[] b)
     {
-        char[] out = new char[b.length * 2];
+        char[] out = new char[(b.length * 2)+1];
+        out[0] = 'a';
         for (int i = 0; i < b.length; i++)
         {
-            out[i*2] = hexes[(b[i] >> 4) & 0xf];
-            out[i*2 + 1] = hexes[b[i] & 0xf];
+            out[i*2 + 1] = hexes[(b[i] >> 4) & 0xf];
+            out[i*2 + 2] = hexes[b[i] & 0xf];
         }
         return new String(out);
     }
@@ -43,6 +52,6 @@ public class SAMLUtils
         SecureRandom sr = new SecureRandom();
         byte[] bytes = new byte[32];
         sr.nextBytes(bytes);
-        return hexEncode(bytes);
+        return generateRequestIdString(bytes);
     }
 }
