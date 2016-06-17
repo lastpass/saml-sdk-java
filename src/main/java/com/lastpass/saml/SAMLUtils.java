@@ -23,21 +23,13 @@ public class SAMLUtils
 {
     private static final char[] hexes = "0123456789abcdef".toCharArray();
 
-    /**
-     * Generate a hex string of the byte content with an 'a' character in the front of
-     * the string.
-     *
-     * @param b
-     * @return
-     */
-    private static String generateRequestIdString(byte[] b)
+    private static String hexEncode(byte[] b)
     {
-        char[] out = new char[(b.length * 2)+1];
-        out[0] = 'a';
+        char[] out = new char[b.length * 2];
         for (int i = 0; i < b.length; i++)
         {
-            out[i*2 + 1] = hexes[(b[i] >> 4) & 0xf];
-            out[i*2 + 2] = hexes[b[i] & 0xf];
+            out[i*2] = hexes[(b[i] >> 4) & 0xf];
+            out[i*2 + 1] = hexes[b[i] & 0xf];
         }
         return new String(out);
     }
@@ -52,6 +44,6 @@ public class SAMLUtils
         SecureRandom sr = new SecureRandom();
         byte[] bytes = new byte[32];
         sr.nextBytes(bytes);
-        return generateRequestIdString(bytes);
+        return "_" + hexEncode(bytes);
     }
 }
