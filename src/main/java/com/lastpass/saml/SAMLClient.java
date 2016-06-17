@@ -203,15 +203,14 @@ public class SAMLClient
 
         for (Assertion assertion: response.getAssertions()) {
 
-            if (this.spConfig.getWantAssertionsSigned()) {
-                // Assertion must be signed correctly
-	            if (!assertion.isSigned())
-	                throw new ValidationException(
-	                    "Assertion must be signed");
+            // Assertion must be signed correctly
+            if (!assertion.isSigned())
+                throw new ValidationException(
+                    "Assertion must be signed");
 
-	            sig = assertion.getSignature();
-	            sigValidator.validate(sig);
-            }
+            sig = assertion.getSignature();
+            sigValidator.validate(sig);
+
             // Assertion must contain an authnstatement
             // with an unexpired session
             if (assertion.getAuthnStatements().isEmpty()) {

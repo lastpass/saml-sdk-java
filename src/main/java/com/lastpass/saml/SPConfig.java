@@ -45,9 +45,6 @@ public class SPConfig
     /** Where the assertions are sent */
     private String acs;
 
-    /** If SP allows only signed assertions */
-    private Boolean wantAssertionsSigned;
-
     /**
      * Construct a new, empty SPConfig.
      */
@@ -148,7 +145,6 @@ public class SPConfig
 
         this.setEntityId(edesc.getEntityID());
         this.setAcs(acsUrl);
-        this.setWantAssertionsSigned(spDesc.getWantAssertionsSigned());
     }
 
     /**
@@ -182,21 +178,5 @@ public class SPConfig
     public String getAcs()
     {
         return this.acs;
-    }
-
-    /**
-     * Set the SP wantAssertionsSigned boolean.
-     */
-    public void setWantAssertionsSigned(Boolean wantAssertionsSigned)
-    {
-        this.wantAssertionsSigned = wantAssertionsSigned;
-    }
-
-    /**
-     * Get the SP wantAssertionsSigned boolean.
-     */
-    public Boolean getWantAssertionsSigned()
-    {
-        return this.wantAssertionsSigned;
     }
 }
