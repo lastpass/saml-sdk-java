@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CP=classes
+CP=../classes
 for i in ../lib/*.jar ../out/*jar; do
     CP=$CP:$i
 done
