@@ -204,4 +204,30 @@ describe "SAMLClient" do
             sc.validateResponse(r)
         end.should raise_error(com.lastpass.saml.SAMLException)
     end
+
+    it "should fail with unsigned assertion" do
+        proc do
+            r = create_response('user@example.org',
+                                'data/spmeta.xml',
+                                'data/idpmeta.xml',
+                                'data/idpkey.pem',
+                                :sign_assertion => false,
+                                :delta_secs => -120)
+            sc = get_client('data/spmeta.xml', 'data/idpmeta.xml')
+            sc.validateResponse(r)
+        end.should raise_error(com.lastpass.saml.SAMLException)
+    end
+
+    it "should pass with unsigned response but signed assertion" do
+        proc do
+            r = create_response('user@example.org',
+                                'data/spmeta.xml',
+                                'data/idpmeta.xml',
+                                'data/idpkey.pem',
+                                :sign_response => false,
+                                :delta_secs => -120)
+            sc = get_client('data/spmeta.xml', 'data/idpmeta.xml')
+            sc.validateResponse(r)
+        end.should_not raise_error
+    end
 end

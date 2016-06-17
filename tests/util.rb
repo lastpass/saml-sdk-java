@@ -70,6 +70,8 @@ def create_response(email, spmeta, idpmeta, privkey_fn, opts = {})
         :authnstatement_delta_secs => 600,
         :subjconfdata_delta_secs => 600,
         :destination => spconf.acs,
+        :sign_assertion => true,
+        :sign_response => true,
         :status => StatusCode::SUCCESS_URI,
     }.merge(opts)
 
@@ -130,19 +132,20 @@ def create_response(email, spmeta, idpmeta, privkey_fn, opts = {})
         assertion.authnStatements.add(authn_stmt)
     end
 
-    #TODO signature.keyInfo = signing_key_info
-    signature.signingCredential = load_privkey(privkey_fn)
-    signature.signatureAlgorithm = SignatureConstants::ALGO_ID_SIGNATURE_RSA_SHA1
-    signature.canonicalizationAlgorithm = SignatureConstants::ALGO_ID_C14N_EXCL_OMIT_COMMENTS
-    resp_sig.signingCredential = load_privkey(privkey_fn)
-    resp_sig.signatureAlgorithm = SignatureConstants::ALGO_ID_SIGNATURE_RSA_SHA1
-    resp_sig.canonicalizationAlgorithm = SignatureConstants::ALGO_ID_C14N_EXCL_OMIT_COMMENTS
+    if opts[:sign_assertion]
+        #TODO signature.keyInfo = signing_key_info
+        signature.signingCredential = load_privkey(privkey_fn)
+        signature.signatureAlgorithm = SignatureConstants::ALGO_ID_SIGNATURE_RSA_SHA1
+        signature.canonicalizationAlgorithm = SignatureConstants::ALGO_ID_C14N_EXCL_OMIT_COMMENTS
+        assertion.signature = signature
+    end
 
-    assertion.signature = signature
     assertion.setID("999999")
 
     Configuration.marshallerFactory.getMarshaller(assertion).marshall(assertion)
-    Signer.signObject(signature)
+    if opts[:sign_assertion]
+        Signer.signObject(signature)
+    end
 
     statusCode.value = opts[:status]
     status.statusCode = statusCode
@@ -150,14 +153,22 @@ def create_response(email, spmeta, idpmeta, privkey_fn, opts = {})
     response.status = status
     response.getAssertions.add(assertion)
     response.issuer = resp_issuer
-    response.signature = resp_sig
     response.destination = opts[:destination]
     response.setID("abcdef")
     response.issueInstant = now
 
+    if opts[:sign_response]
+        resp_sig.signingCredential = load_privkey(privkey_fn)
+        resp_sig.signatureAlgorithm = SignatureConstants::ALGO_ID_SIGNATURE_RSA_SHA1
+        resp_sig.canonicalizationAlgorithm = SignatureConstants::ALGO_ID_C14N_EXCL_OMIT_COMMENTS
+        response.signature = resp_sig
+    end
+
     marshaller = Configuration.marshallerFactory.getMarshaller(response)
     elem = marshaller.marshall(response)
-    Signer.signObject(resp_sig)
+    if opts[:sign_response]
+        Signer.signObject(resp_sig)
+    end
     xmlstr = dom_to_string(elem)
 
     return Base64.encode64(xmlstr)
