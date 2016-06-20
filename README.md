@@ -18,7 +18,7 @@ session operates like this:
     http://idp.example.org.  This site is the Identity Provider (IdP).
  3. The IdP authenticates the user (by prompting for a password,
     perhaps), and then causes the user's browser to return to the
-    Service Provider, posting a crptographically signed token.
+    Service Provider, posting a cryptographically signed token.
  4. The SP verifies that the token's signature is valid, belongs to
     the IdP, and that the token meets certain criteria.
  5. Assuming the token is valid, the user is allowed to proceed
