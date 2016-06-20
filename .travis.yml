@@ -1,0 +1,10 @@
+language: ruby
+rvm:
+    - jruby
+install:
+    - ant deps
+    - export JRUBY_OPTS=''
+    - jruby -S gem install rspec -v 2.6.0
+script:
+    - ant
+    - cd tests && ./run-tests.sh
