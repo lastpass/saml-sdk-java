@@ -28,6 +28,7 @@ import org.opensaml.saml2.metadata.EntityDescriptor;
 import org.opensaml.saml2.metadata.SPSSODescriptor;
 import org.opensaml.saml2.metadata.AssertionConsumerService;
 import org.opensaml.common.xml.SAMLConstants;
+import java.security.PrivateKey;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -44,6 +45,9 @@ public class SPConfig
 
     /** Where the assertions are sent */
     private String acs;
+
+    /** Private key used for decrypting assertions */
+    private PrivateKey privateKey;
 
     /**
      * Construct a new, empty SPConfig.
@@ -178,5 +182,21 @@ public class SPConfig
     public String getAcs()
     {
         return this.acs;
+    }
+
+    /**
+     * Set private key used for decrypting assertions.
+     */
+    public void setPrivateKey(PrivateKey privateKey)
+    {
+        this.privateKey = privateKey;
+    }
+
+    /**
+     * Get private key used for decrypting assertions.
+     */
+    public PrivateKey getPrivateKey()
+    {
+        return this.privateKey;
     }
 }

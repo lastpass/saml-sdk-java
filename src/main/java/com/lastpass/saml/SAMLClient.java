@@ -24,6 +24,7 @@ import org.opensaml.saml2.core.Conditions;
 import org.opensaml.saml2.core.AuthnStatement;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Assertion;
+import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.Audience;
 import org.opensaml.saml2.core.AudienceRestriction;
@@ -34,6 +35,8 @@ import org.opensaml.saml2.core.SubjectConfirmationData;
 import org.opensaml.saml2.core.AttributeStatement;
 import org.opensaml.saml2.core.Attribute;
 
+import org.opensaml.saml2.encryption.Decrypter;
+
 import org.opensaml.common.SAMLObjectBuilder;
 
 import org.opensaml.xml.parse.BasicParserPool;
@@ -41,6 +44,10 @@ import org.opensaml.xml.io.MarshallingException;
 import org.opensaml.xml.security.credential.BasicCredential;
 import org.opensaml.xml.signature.SignatureValidator;
 import org.opensaml.xml.signature.Signature;
+import org.opensaml.xml.encryption.InlineEncryptedKeyResolver;
+import org.opensaml.xml.encryption.DecryptionException;
+import org.opensaml.xml.security.credential.BasicCredential;
+import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
 import org.opensaml.xml.validation.ValidationException;
 import org.opensaml.xml.XMLObjectBuilderFactory;
 import org.opensaml.xml.XMLObject;
@@ -164,6 +171,42 @@ public class SAMLClient
         }
     }
 
+    /**
+     * Decrypt an assertion using the privkey stored in SPConfig.
+     */
+    private Assertion decrypt(EncryptedAssertion encrypted)
+        throws DecryptionException
+    {
+        if (spConfig.getPrivateKey() == null)
+            throw new DecryptionException("Encrypted assertion found but no SP key available");
+        BasicCredential cred = new BasicCredential();
+        cred.setPrivateKey(spConfig.getPrivateKey());
+        StaticKeyInfoCredentialResolver resolver =
+            new StaticKeyInfoCredentialResolver(cred);
+        Decrypter decrypter =
+            new Decrypter(null, resolver, new InlineEncryptedKeyResolver());
+        decrypter.setRootInNewDocument(true);
+
+        return decrypter.decrypt(encrypted);
+    }
+
+    /**
+     * Retrieve all supplied assertions, decrypting any encrypted
+     * assertions if necessary.
+     */
+    private List<Assertion> getAssertions(Response response)
+        throws DecryptionException
+    {
+        List<Assertion> assertions = new ArrayList<Assertion>();
+        assertions.addAll(response.getAssertions());
+
+        for (EncryptedAssertion e : response.getEncryptedAssertions()) {
+            assertions.add(decrypt(e));
+        }
+
+        return assertions;
+    }
+
     private void validate(Response response)
         throws ValidationException
     {
@@ -201,7 +244,14 @@ public class SAMLClient
                     "Response IssueInstant is in the future");
         }
 
-        for (Assertion assertion: response.getAssertions()) {
+        List<Assertion> assertions = null;
+        try {
+            assertions = getAssertions(response);
+        } catch (DecryptionException e) {
+            throw new ValidationException(e);
+        }
+
+        for (Assertion assertion: assertions) {
 
             // Assertion must be signed correctly
             if (!assertion.isSigned())
@@ -436,12 +486,19 @@ public class SAMLClient
             throw new SAMLException(e);
         }
 
+        List<Assertion> assertions = null;
+        try {
+            assertions = getAssertions(response);
+        } catch (DecryptionException e) {
+            throw new SAMLException(e);
+        }
+
         // we only look at first assertion
-        if (response.getAssertions().size() != 1) {
+        if (assertions.size() != 1) {
             throw new SAMLException(
                 "Response should have a single assertion.");
         }
-        Assertion assertion = response.getAssertions().get(0);
+        Assertion assertion = assertions.get(0);
 
         Subject subject = assertion.getSubject();
         if (subject == null) {

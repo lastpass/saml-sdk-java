@@ -21,10 +21,14 @@ java_import org.opensaml.saml2.core.StatusCode
 java_import org.opensaml.saml2.core.SubjectConfirmation
 java_import org.opensaml.saml2.core.SubjectConfirmationData
 java_import org.opensaml.saml2.core.StatusCode
+java_import org.opensaml.saml2.encryption.Encrypter
 java_import org.opensaml.xml.signature.Signature
 java_import org.opensaml.xml.signature.SignatureConstants
 java_import org.opensaml.xml.signature.Signer
 java_import org.opensaml.xml.security.credential.BasicCredential
+java_import org.opensaml.xml.encryption.EncryptionParameters
+java_import org.opensaml.xml.encryption.EncryptionConstants
+java_import org.opensaml.xml.encryption.KeyEncryptionParameters
 
 java_import org.bouncycastle.jce.provider.BouncyCastleProvider
 java_import org.bouncycastle.openssl.PEMReader
@@ -56,7 +60,7 @@ def load_privkey(fn)
     return cred
 end
 
-def create_response(email, spmeta, idpmeta, privkey_fn, opts = {})
+def create_response(email, spmeta, idpmeta, privkey_fn, sp_privkey_fn, opts = {})
 
     spconf = SPConfig.new(java.io.File.new(spmeta))
     idpconf = IdPConfig.new(java.io.File.new(idpmeta))
@@ -72,6 +76,7 @@ def create_response(email, spmeta, idpmeta, privkey_fn, opts = {})
         :destination => spconf.acs,
         :sign_assertion => true,
         :sign_response => true,
+        :encrypt_assertion => false,
         :status => StatusCode::SUCCESS_URI,
     }.merge(opts)
 
@@ -147,11 +152,29 @@ def create_response(email, spmeta, idpmeta, privkey_fn, opts = {})
         Signer.signObject(signature)
     end
 
+    encrypted_assertion = nil
+    if opts[:encrypt_assertion]
+        kek_params = KeyEncryptionParameters.new()
+        kek_params.encryptionCredential = load_privkey(sp_privkey_fn)
+        kek_params.algorithm = EncryptionConstants::ALGO_ID_KEYTRANSPORT_RSAOAEP
+
+        params = EncryptionParameters.new()
+        params.algorithm = EncryptionConstants::ALGO_ID_BLOCKCIPHER_AES256
+
+        encrypter = Encrypter.new(params, kek_params)
+        encrypter.keyPlacement = Encrypter::KeyPlacement::INLINE
+        encrypted_assertion = encrypter.encrypt(assertion)
+    end
+
     statusCode.value = opts[:status]
     status.statusCode = statusCode
 
     response.status = status
-    response.getAssertions.add(assertion)
+    if encrypted_assertion != nil
+        response.getEncryptedAssertions.add(encrypted_assertion)
+    else
+        response.getAssertions.add(assertion)
+    end
     response.issuer = resp_issuer
     response.destination = opts[:destination]
     response.setID("abcdef")
@@ -177,5 +200,14 @@ end
 def get_client(spmeta, idpmeta)
     spconf = SPConfig.new(java.io.File.new(spmeta))
     idpconf = IdPConfig.new(java.io.File.new(idpmeta))
+    return SAMLClient.new(spconf, idpconf)
+end
+
+def get_client_with_sp_key(spmeta, idpmeta, sp_privkey_fn)
+    spconf = SPConfig.new(java.io.File.new(spmeta))
+    idpconf = IdPConfig.new(java.io.File.new(idpmeta))
+
+    cred = load_privkey(sp_privkey_fn)
+    spconf.privateKey = cred.privateKey
     return SAMLClient.new(spconf, idpconf)
 end
