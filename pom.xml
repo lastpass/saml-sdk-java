@@ -10,8 +10,8 @@
     <dependencies>
         <dependency>
             <groupId>org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
-            <version>2.6.4</version>
+            <artifactId>opensaml-saml-impl</artifactId>
+            <version>3.1.1</version>
         </dependency>
     </dependencies>
 </project>

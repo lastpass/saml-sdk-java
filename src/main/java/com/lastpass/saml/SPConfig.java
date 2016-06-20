@@ -20,14 +20,17 @@ package com.lastpass.saml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-
-import org.opensaml.Configuration;
-import org.opensaml.xml.parse.BasicParserPool;
-import org.opensaml.xml.io.UnmarshallerFactory;
-import org.opensaml.saml2.metadata.EntityDescriptor;
-import org.opensaml.saml2.metadata.SPSSODescriptor;
-import org.opensaml.saml2.metadata.AssertionConsumerService;
-import org.opensaml.common.xml.SAMLConstants;
+import net.shibboleth.utilities.java.support.component.ComponentInitializationException;
+import net.shibboleth.utilities.java.support.xml.BasicParserPool;
+import net.shibboleth.utilities.java.support.xml.XMLParserException;
+import org.opensaml.core.config.Configuration;
+import org.opensaml.core.xml.io.UnmarshallerFactory;
+import org.opensaml.core.xml.io.UnmarshallingException;
+import org.opensaml.core.xml.util.XMLObjectSupport;
+import org.opensaml.saml.common.xml.SAMLConstants;
+import org.opensaml.saml.saml2.metadata.AssertionConsumerService;
+import org.opensaml.saml.saml2.metadata.EntityDescriptor;
+import org.opensaml.saml.saml2.metadata.SPSSODescriptor;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -102,30 +105,27 @@ public class SPConfig
     {
         BasicParserPool parsers = new BasicParserPool();
         parsers.setNamespaceAware(true);
+        try {
+            parsers.initialize();
+        } catch (ComponentInitializationException e) {
+            throw new SAMLException("Failed to initialize BasicParserPool", e);
+        }
 
         EntityDescriptor edesc;
 
         try {
-            Document doc = parsers.parse(inputStream);
-            Element root = doc.getDocumentElement();
-
-            UnmarshallerFactory unmarshallerFactory =
-                Configuration.getUnmarshallerFactory();
-
-            edesc = (EntityDescriptor) unmarshallerFactory
-                .getUnmarshaller(root)
-                .unmarshall(root);
+            edesc = (EntityDescriptor) XMLObjectSupport.unmarshallFromInputStream(parsers, inputStream);
         }
-        catch (org.opensaml.xml.parse.XMLParserException e) {
+        catch (XMLParserException e) {
             throw new SAMLException(e);
         }
-        catch (org.opensaml.xml.io.UnmarshallingException e) {
+        catch (UnmarshallingException e) {
             throw new SAMLException(e);
         }
 
         // fetch sp information
         SPSSODescriptor spDesc = edesc.getSPSSODescriptor(
-            "urn:oasis:names:tc:SAML:2.0:protocol");
+            SAMLConstants.SAML20P_NS);
 
         if (spDesc == null)
             throw new SAMLException("No SP SSO descriptor found");
